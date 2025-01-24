@@ -1,0 +1,76 @@
+<!-- templates/index.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>To do list tracker</h1>
+    <button class="button" id="addNoteBtn">Добавить заметку</button>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="popup" id="popup">
+    <h2>Добавить заметку</h2>
+    <form id="noteForm" method="POST" action="{{ url_for('index') }}">
+        {{ form.hidden_tag() }}
+        <label for="title">Название заметки:</label><br>
+        {{ form.content(size=30) }}<br><br>
+
+        <label>Тип:</label><br>
+        {{ form.is_task() }} Задача<br>
+        {{ form.is_note() }} Заметка<br><br>
+
+        <div id="deadlineContainer" class="hidden">
+            <label for="timer">Дедлайн:</label><br>
+            {{ form.timer() }}<br><br>
+        </div>
+
+        <button type="submit" class="button">Сохранить</button>
+        <button type="button" class="button" id="closePopupBtn">Закрыть</button>
+    </form>
+</div>
+
+<div class="note-area">
+    <h2>Список заметок</h2>
+    <ul>
+        {% for note in notes %}
+            <li class="note-item">
+                {{ note.content }} 
+                <a href="{{ url_for('edit', note_id=note.id) }}">Редактировать</a>
+                <a href="{{ url_for('delete', note_id=note.id) }}">Удалить</a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+    const addNoteBtn = document.getElementById('addNoteBtn');
+    const overlay = document.getElementById('overlay');
+    const popup = document.getElementById('popup');
+    const closePopupBtn = document.getElementById('closePopupBtn');
+    const deadlineContainer = document.getElementById('deadlineContainer');
+
+    addNoteBtn.addEventListener('click', () => {
+        overlay.style.display = 'block';
+        popup.style.display = 'block';
+    });
+
+    closePopupBtn.addEventListener('click', () => {
+        overlay.style.display = 'none';
+        popup.style.display = 'none';
+    });
+
+    overlay.addEventListener('click', () => {
+        overlay.style.display = 'none';
+        popup.style.display = 'none';
+    });
+
+    document.getElementById('noteForm').addEventListener('submit', (e) => {
+        const isTask = document.querySelector('input[name="type"]:checked').value === 'task';
+        if (isTask) {
+            deadlineContainer.classList.remove('hidden');
+        } else {
+            deadlineContainer.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}

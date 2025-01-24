@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do List Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .button {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+        .notes-container {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .note {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 3px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+        .note-actions {
+            margin-top: 10px;
+        }
+
+        .button {
+        padding: 5px 10px;
+        margin-right: 5px;
+        text-decoration: none;
+        }
+
+        .delete-btn {
+        background-color: #dc3545;
+        }
+
+        .delete-btn:hover {
+        background-color: #bb2d3b;
+        }
+
+        .timer {
+        color: #dc3545;
+        font-weight: bold;
+        margin-top: 5px;
+        }
+        .note.completed {
+    border: 2px solid #28a745 !important;
+
+    
+}
+
+.note.expired {
+    border: 2px solid #dc3545 !important; 
+}
+        .confirmation-box {
+        display: none;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        z-index: 1;
+    }
+
+    .note.expired .confirmation-box {
+        display: block !important;
+    }
+    .stats-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .completed-stat .stat-value {
+            color: #28a745;
+        }
+
+        .uncompleted-stat .stat-value {
+            color: #dc3545;
+        }
+
+        .header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.telegram-btn {
+    background: #0088cc;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.telegram-btn:hover {
+    background: #0077b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.telegram-btn:active {
+    transform: translateY(0);
+}
+
+.tg-icon {
+    margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+    .header-wrapper {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .telegram-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container {
+    flex: 1;
+}
+
+.site-footer {
+    background-color: #f4f4f4;
+    text-align: center;
+    padding: 20px;
+    margin-top: auto;
+    border-top: 1px solid #ddd;
+    font-size: 14px;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .site-footer {
+        padding: 15px;
+        font-size: 12px;
+    }
+}
+       
+
+        
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>To do list tracker</h1>
+        <div class="container">
+            <div class="header-wrapper">
+                <button class="telegram-btn" onclick="window.open('https://t.me/@TodoListTgBot_bot?start=start', '_blank')">
+                    <svg class="tg-icon" viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394a.791.791 0 0 1-.57.246l.213-3.05 5.56-5.023c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.203-.658-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z"/>
+                    </svg>
+                    Connect Telegram
+                </button>
+            </div>
+        <div class="stats-container">
+            <div class="stat-item completed-stat">
+                <span class="stat-value">{{ completed_count }}</span>
+                <span class="stat-label">Выполнено задач</span>
+            </div>
+            <div class="stat-item uncompleted-stat">
+                <span class="stat-value">{{ uncompleted_count }}</span>
+                <span class="stat-label">Не выполнено задач</span>
+            </div>
+        </div>
+        <button class="button" id="addNoteBtn">Добавить заметку</button>
+    </div>
+
+<div class="overlay" id="overlay"></div>
+<div class="popup" id="popup">
+    <h2>Добавить заметку</h2>
+    <form id="noteForm" action="{{ url_for('index') }}" method="POST">
+        <input type="hidden" id="note_id" name="note_id">
+        {{ form.hidden_tag() }}  <!-- CSRF-токен -->
+        <label for="content">Название заметки:</label><br>
+        {{ form.content(id="content", required=True) }}<br><br>
+    
+        <label for="info">Основная информация:</label><br>
+        <textarea id="info" name="info" rows="4" cols="30" required></textarea><br><br>
+    
+        <label>Тип если да - то задача,нет - обычаная :</label><br>
+        {{ form.is_task(id="is_task") }}<br><br>
+    
+        <div id="deadlineContainer" class="hidden">
+            <label for="timer">Дедлайн:</label><br>
+            <input type="datetime-local" id="timer" name="timer"><br><br>
+        </div>
+    
+        <button type="submit" class="button">Сохранить</button>
+        <button type="button" class="button" id="closePopupBtn">Закрыть</button>
+    </form>
+</div>
+
+<div class="notes-container">
+    <h2>Созданные заметки</h2>
+    <div id="notes">
+        {% for note in notes %}
+        <div class="note 
+        {% if note.is_completed %}completed
+        {% elif note.is_expired %}expired{% endif %}" 
+        id="note-{{ note.id }}">
+                <p><strong>Название:</strong> {{ note.content }}</p>
+                {% if note.info %}
+                    <p><strong>Основная информация:</strong> {{ note.info }}</p>
+                {% endif %}
+                {% if note.is_task and note.timer %}
+                    <p><strong>Дедлайн:</strong> {{ note.timer.strftime('%Y-%m-%d %H:%M') }}</p>
+                    <div class="timer" data-deadline="{{ note.timer.isoformat() }}"></div>
+                    {% if note.is_expired and not note.is_completed %}
+                    <div class="confirmation-box">
+                        <p>Вы завершили задачу?</p>
+                        <button class="button complete-btn" data-note-id="{{ note.id }}">Да</button>
+                        <button class="button uncomplete-btn" data-note-id="{{ note.id }}">Нет</button>
+                    </div>
+                    {% endif %} 
+                {% endif %} 
+                <div class="note-actions">
+                    <button class="button edit-btn" 
+                            data-note-id="{{ note.id }}"
+                            data-content="{{ note.content }}"
+                            data-info="{{ note.info }}"
+                            data-is-task="{{ note.is_task }}"
+                            data-timer="{{ note.timer.strftime('%Y-%m-%dT%H:%M') if note.timer else '' }}">
+                        Редактировать
+                    </button>
+                    <a href="{{ url_for('delete', note_id=note.id) }}" class="button delete-btn">Удалить</a>
+                </div>
+                
+            </div>
+        {% else %}
+            <p>Заметок пока нет.</p>
+        {% endfor %} 
+    </div>
+</div>
+
+<script>
+
+
+
+const addNoteBtn = document.getElementById('addNoteBtn');
+const overlay = document.getElementById('overlay');
+const popup = document.getElementById('popup');
+const closePopupBtn = document.getElementById('closePopupBtn');
+const taskType = document.getElementById('is_task');
+const deadlineContainer = document.getElementById('deadlineContainer');
+
+addNoteBtn.addEventListener('click', () => {
+    overlay.style.display = 'block';
+    popup.style.display = 'block';
+});
+
+closePopupBtn.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    popup.style.display = 'none';
+});
+
+overlay.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    popup.style.display = 'none';
+});
+
+taskType.addEventListener('change', () => {
+    if (taskType.checked) {
+        deadlineContainer.classList.remove('hidden');
+    } else {
+        deadlineContainer.classList.add('hidden');
+    }
+});
+
+document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        if (!confirm('Вы уверены, что хотите удалить эту заметку?')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+
+<script>
+    document.querySelectorAll('.timer').forEach(timerElement => {
+    const noteElement = timerElement.closest('.note');
+    const noteId = noteElement.id.replace('note-', '');
+    
+    
+    if(noteElement.classList.contains('completed') || noteElement.classList.contains('expired')) return;
+
+    const deadline = new Date(timerElement.dataset.deadline).getTime();
+    let isExpiredCalled = false;
+
+    function updateTimer() {
+        const now = new Date().getTime();
+        const timeRemaining = deadline - now;
+
+        if (timeRemaining <= 0) {
+            timerElement.innerHTML = "Время истекло!";
+            
+            if (!isExpiredCalled) {
+                isExpiredCalled = true;
+                fetch(`/mark_expired/${noteId}`, { 
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Ошибка сети');
+                    // Добавляем класс через JS без перезагрузки
+                    noteElement.classList.add('expired');
+                    location.reload(true);
+                    const confirmationBox = noteElement.querySelector('.confirmation-box');
+                    if (confirmationBox) confirmationBox.style.display = 'block';
+                })
+                .catch(error => console.error('Ошибка:', error));
+            }
+            clearInterval(interval);
+            return;
+        }
+    
+            const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+    
+            timerElement.innerHTML = `
+                Осталось: 
+                ${days}d ${hours}h ${minutes}m ${seconds}s
+            `;
+        }
+    
+        const interval = setInterval(updateTimer, 1000);
+        updateTimer();
+    });
+    </script>
+
+<script>
+document.addEventListener('click', async (e) => {
+    // Обработка кнопки "Да"
+    if (e.target.classList.contains('complete-btn')) {
+        const noteId = e.target.dataset.noteId;
+        try {
+            const response = await fetch(`/complete_task/${noteId}?t=${Date.now()}`);
+            if (response.ok) {
+                location.reload(true); 
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+        }
+    }
+    if (e.target.classList.contains('complete-btn')) {
+        const noteId = e.target.dataset.noteId;
+        try {
+            const response = await fetch(`/uncomplete_task/${noteId}?t=${Date.now()}`);
+            if (response.ok) {
+                location.reload(true);
+                confirmationBox.style.display = 'none';     
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            confirmationBox.style.display = 'none'; 
+        }
+    }
+
+    
+    
+});
+
+
+</script>
+
+<script>
+document.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('uncomplete-btn')) {
+        const noteId = e.target.dataset.noteId;
+        try {
+            const response = await fetch(`/uncomplete_task/${noteId}`, {
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            if (response.ok) {
+                location.reload(true); 
+            } else {
+                console.error('Ошибка при отмене задачи:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+        }
+    }
+});
+
+
+
+</script>
+
+
+<script>
+   
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const noteId = e.target.dataset.noteId;
+            const content = e.target.dataset.content;
+            const info = e.target.dataset.info;
+            const isTask = e.target.dataset.isTask === 'True';
+            const timer = e.target.dataset.timer;
+    
+           
+            document.getElementById('note_id').value = noteId;
+            document.getElementById('content').value = content;
+            document.getElementById('info').value = info;
+            document.getElementById('is_task').checked = isTask;
+            document.getElementById('timer').value = timer;
+    
+         
+            overlay.style.display = 'block';
+            popup.style.display = 'block';
+            
+       
+            if (isTask) {
+                deadlineContainer.classList.remove('hidden');
+            } else {
+                deadlineContainer.classList.add('hidden');
+            }
+        });
+    });
+    
+    
+    document.getElementById('noteForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const noteId = formData.get('note_id');
+        const url = noteId ? `/edit/${noteId}` : "{{ url_for('index') }}";
+    
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+            });
+            
+            if (response.ok) {
+                location.reload(); 
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+        }
+    });
+    </script>
+<footer class="site-footer">
+    Pet Project Designed And Programmed By Nikita Ridnay
+</footer>
+</body>
+</html>
